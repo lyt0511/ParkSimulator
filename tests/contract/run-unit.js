@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+﻿import { spawnSync } from "node:child_process";
 
 const scope = process.argv[2] ?? "s01";
 
@@ -7,11 +7,13 @@ const scopeToFiles = {
   s02: ["tests/contract/s02-scenes.test.js"],
   s03: ["tests/contract/s03-motion-semantics.test.js"],
   s04: ["tests/contract/s04-settlement.test.js"],
+  s05: ["tests/contract/s05-failure-reasons.test.js"],
   all: [
     "tests/contract/contract-smoke.test.js",
     "tests/contract/s02-scenes.test.js",
     "tests/contract/s03-motion-semantics.test.js",
-    "tests/contract/s04-settlement.test.js"
+    "tests/contract/s04-settlement.test.js",
+    "tests/contract/s05-failure-reasons.test.js"
   ]
 };
 

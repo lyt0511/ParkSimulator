@@ -1,4 +1,4 @@
-## PRD-0.3 Contract Smoke Checklist
+﻿## PRD-0.3 Contract Smoke Checklist
 
 ### S01 骨架
 - [ ] 菜单入口骨架存在
@@ -24,6 +24,11 @@
 - [ ] 8度角边界判定成功
 - [ ] 静止2秒边界判定成功
 - [ ] 120秒超时边界判定失败
+
+### S05 6类失败原因可见输出
+- [ ] 6类失败原因可触发：angle_over_limit / cross_line / not_still / collision / out_of_bounds / timeout
+- [ ] 核心枚举与UI展示映射一致
+- [ ] 手动结算与自动结算的失败主因标签可见
 
 ### 正常路径
 - [ ] 手动结束成功结算可见
