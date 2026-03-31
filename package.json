@@ -1,10 +1,12 @@
-{
+﻿{
   "name": "park-simulator",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/contract/contract-smoke.test.js",
+    "lint": "tsc --noEmit --pretty false",
+    "test": "npm run test:unit -- all",
+    "test:unit": "node tests/contract/run-unit.js",
     "build": "tsc --noEmit"
   },
   "devDependencies": {
