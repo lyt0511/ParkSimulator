@@ -1,9 +1,33 @@
-import { MOTION_RULES, type FailureReason } from "./rules.js";
+import {
+  MOTION_RULES,
+  SETTLEMENT_RULES,
+  SUCCESS_RULES,
+  type FailureReason
+} from "./rules.js";
 import type { ScenarioId } from "../scenes/index.js";
+
+export const SETTLEMENT_TRIGGERS = ["manual", "auto_still"] as const;
+
+export type SettlementTrigger = (typeof SETTLEMENT_TRIGGERS)[number];
 
 export type Settlement = {
   success: boolean;
   reason?: FailureReason;
+  trigger?: SettlementTrigger;
+};
+
+export type SuccessCriteriaInput = {
+  coverage: number;
+  angleDeg: number;
+  stillSeconds: number;
+};
+
+export type SettlementContext = SuccessCriteriaInput & {
+  trigger: SettlementTrigger;
+  elapsedSeconds: number;
+  collision?: boolean;
+  outOfBounds?: boolean;
+  crossLine?: boolean;
 };
 
 export type ControlInput = {
@@ -105,4 +129,77 @@ export const runDeterministicSequence = (
   return inputs.reduce((currentState, input) => {
     return stepVehicleState(currentState, input, dtSeconds);
   }, initialState);
+};
+
+export const evaluateSuccessCriteria = ({
+  coverage,
+  angleDeg,
+  stillSeconds
+}: SuccessCriteriaInput): boolean => {
+  return (
+    coverage >= SUCCESS_RULES.withinSlotCoverage &&
+    angleDeg <= SUCCESS_RULES.maxAngleDeg &&
+    stillSeconds >= SUCCESS_RULES.stillSeconds
+  );
+};
+
+export const shouldAutoSettleByStill = (stillSeconds: number): boolean => {
+  return stillSeconds >= SETTLEMENT_RULES.autoStillSeconds;
+};
+
+export const isTimedOut = (elapsedSeconds: number): boolean => {
+  return elapsedSeconds >= SETTLEMENT_RULES.timeoutSeconds;
+};
+
+const deriveFailureReason = (context: SettlementContext): FailureReason | null => {
+  if (context.collision) {
+    return "collision";
+  }
+
+  if (context.outOfBounds) {
+    return "out_of_bounds";
+  }
+
+  if (context.crossLine || context.coverage < SUCCESS_RULES.withinSlotCoverage) {
+    return "cross_line";
+  }
+
+  if (isTimedOut(context.elapsedSeconds)) {
+    return "timeout";
+  }
+
+  if (context.angleDeg > SUCCESS_RULES.maxAngleDeg) {
+    return "angle_over_limit";
+  }
+
+  if (context.stillSeconds < SUCCESS_RULES.stillSeconds) {
+    return "not_still";
+  }
+
+  return null;
+};
+
+export const settleSimulation = (context: SettlementContext): Settlement => {
+  const reason = deriveFailureReason(context);
+
+  if (reason) {
+    return {
+      success: false,
+      reason,
+      trigger: context.trigger
+    };
+  }
+
+  if (evaluateSuccessCriteria(context)) {
+    return {
+      success: true,
+      trigger: context.trigger
+    };
+  }
+
+  return {
+    success: false,
+    reason: "not_still",
+    trigger: context.trigger
+  };
 };

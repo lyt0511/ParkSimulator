@@ -4,6 +4,11 @@ export const SUCCESS_RULES = {
   stillSeconds: 2
 } as const;
 
+export const SETTLEMENT_RULES = {
+  timeoutSeconds: 120,
+  autoStillSeconds: SUCCESS_RULES.stillSeconds
+} as const;
+
 export const MOTION_RULES = {
   maxSpeed: 8,
   accelPerSecond: 4,
