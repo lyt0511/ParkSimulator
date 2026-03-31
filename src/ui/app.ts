@@ -34,3 +34,7 @@ export const APP_CONTRACT = {
   phases: GAME_PHASES,
   failureReasonLabels: FAILURE_REASON_LABELS
 } as const;
+
+export const DEBUG_HOOKS = {
+  getContractSnapshot: () => APP_CONTRACT
+} as const;
