@@ -4,6 +4,12 @@ export const SUCCESS_RULES = {
   stillSeconds: 2
 } as const;
 
+export const MOTION_RULES = {
+  maxSpeed: 8,
+  accelPerSecond: 4,
+  steeringRateDegPerSecond: 60
+} as const;
+
 export const FAILURE_REASONS = [
   "angle_over_limit",
   "cross_line",
