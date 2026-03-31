@@ -4,7 +4,7 @@
 3 请按照step01、02、03、...的顺序执行任务
 
 ### step01
-1. 新建并切换feat/s<$mission_id>分支
+1. 判断有没有切换到feat/s<$mission_id>分支，若无则终止执行，提示用户切换到该分支
 2. 首先根据plans/prd-0.3-plan.md 中的切片<$mission_id>生成第一张任务卡Slice<$mission_id>，内容：
 任务卡Slice <$mission_id> - <slice name>（slice name参考plan中切片<$mission_id>的名称命名） 
 
