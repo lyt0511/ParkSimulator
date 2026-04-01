@@ -2,6 +2,15 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 
+import {
+  GAME_PHASES,
+  INITIAL_GAME_STATE,
+  SAMPLE_RATE_HZ
+} from "../../dist/core/simulator.js";
+import { SUCCESS_RULES } from "../../dist/core/rules.js";
+import { SCENARIOS, SCENARIO_SCHEMAS } from "../../dist/scenes/index.js";
+import { APP_CONTRACT, DEBUG_HOOKS, INITIAL_UI_STATE, MENU_ITEMS } from "../../dist/ui/app.js";
+
 const mustExist = [
   "src/core/simulator.ts",
   "src/core/rules.ts",
@@ -27,22 +36,32 @@ test("slice01 checklist includes skeleton items", () => {
   assert.match(content, /输入常量/);
 });
 
-test("simulator exposes game state shell", () => {
-  const content = fs.readFileSync("src/core/simulator.ts", "utf8");
-  assert.match(content, /GAME_PHASES/);
-  assert.match(content, /GameState/);
-  assert.match(content, /INITIAL_GAME_STATE/);
+test("simulator exposes game state shell runtime values", () => {
+  assert.deepEqual(GAME_PHASES, ["menu", "running", "settled"]);
+  assert.deepEqual(INITIAL_GAME_STATE, {
+    phase: "menu",
+    tick: 0,
+    selectedScenario: null,
+    settlement: null
+  });
 });
 
-test("scenes exposes schema shell", () => {
-  const content = fs.readFileSync("src/scenes/index.ts", "utf8");
-  assert.match(content, /SCENARIO_SCHEMA_VERSION/);
-  assert.match(content, /ScenarioSchema/);
-  assert.match(content, /SCENARIO_SCHEMAS/);
+test("ui menu shell maps scenarios to labels", () => {
+  assert.equal(INITIAL_UI_STATE.screen, "menu");
+  assert.equal(INITIAL_UI_STATE.selectedScenario, null);
+  assert.equal(MENU_ITEMS.length, SCENARIOS.length);
+
+  for (const menu of MENU_ITEMS) {
+    assert.equal(SCENARIOS.includes(menu.id), true);
+    assert.equal(menu.label, SCENARIO_SCHEMAS[menu.id].label);
+  }
 });
 
-test("ui exposes menu shell", () => {
-  const content = fs.readFileSync("src/ui/app.ts", "utf8");
-  assert.match(content, /MENU_ITEMS/);
-  assert.match(content, /INITIAL_UI_STATE/);
+test("app contract and debug hook snapshot remain consistent", () => {
+  assert.deepEqual(APP_CONTRACT.scenarios, SCENARIOS);
+  assert.equal(APP_CONTRACT.sampleRateHz, SAMPLE_RATE_HZ);
+  assert.deepEqual(APP_CONTRACT.rules, SUCCESS_RULES);
+  assert.strictEqual(DEBUG_HOOKS.getContractSnapshot(), APP_CONTRACT);
 });
+
+

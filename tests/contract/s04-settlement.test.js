@@ -1,6 +1,15 @@
-import test from "node:test";
+﻿import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+
+import { SETTLEMENT_RULES, SUCCESS_RULES } from "../../dist/core/rules.js";
+import {
+  SETTLEMENT_TRIGGERS,
+  evaluateSuccessCriteria,
+  isTimedOut,
+  settleSimulation,
+  shouldAutoSettleByStill
+} from "../../dist/core/simulator.js";
 
 test("slice04 mission card exists", () => {
   assert.equal(fs.existsSync("docs/mission/prd-0.3-s04.md"), true);
@@ -14,26 +23,42 @@ test("slice04 checklist includes settlement items", () => {
   assert.match(content, /手动结束与自动结束均可触发/);
 });
 
-test("rules expose settlement constants", () => {
-  const content = fs.readFileSync("src/core/rules.ts", "utf8");
-  assert.match(content, /SUCCESS_RULES/);
-  assert.match(content, /maxAngleDeg:\s*8/);
-  assert.match(content, /stillSeconds:\s*2/);
-  assert.match(content, /SETTLEMENT_RULES/);
-  assert.match(content, /timeoutSeconds:\s*120/);
+test("rules and triggers expose settlement constants", () => {
+  assert.deepEqual(SETTLEMENT_TRIGGERS, ["manual", "auto_still"]);
+  assert.equal(SUCCESS_RULES.maxAngleDeg, 8);
+  assert.equal(SUCCESS_RULES.stillSeconds, 2);
+  assert.equal(SETTLEMENT_RULES.timeoutSeconds, 120);
 });
 
-test("simulator exposes settlement and success evaluators", () => {
-  const content = fs.readFileSync("src/core/simulator.ts", "utf8");
-  assert.match(content, /SETTLEMENT_TRIGGERS/);
-  assert.match(content, /evaluateSuccessCriteria/);
-  assert.match(content, /shouldAutoSettleByStill/);
-  assert.match(content, /settleSimulation/);
+test("success and timeout boundaries are inclusive", () => {
+  assert.equal(
+    evaluateSuccessCriteria({ coverage: 1, angleDeg: SUCCESS_RULES.maxAngleDeg, stillSeconds: 2 }),
+    true
+  );
+  assert.equal(shouldAutoSettleByStill(2), true);
+  assert.equal(isTimedOut(120), true);
 });
 
-test("simulator settlement handles boundary comparators inclusively", () => {
-  const content = fs.readFileSync("src/core/simulator.ts", "utf8");
-  assert.match(content, /angleDeg\s*<=\s*SUCCESS_RULES\.maxAngleDeg/);
-  assert.match(content, /stillSeconds\s*>=\s*SUCCESS_RULES\.stillSeconds/);
-  assert.match(content, /elapsedSeconds\s*>=\s*SETTLEMENT_RULES\.timeoutSeconds/);
+test("settlement returns expected result for success and not_still failure", () => {
+  const success = settleSimulation({
+    trigger: "manual",
+    coverage: 1,
+    angleDeg: 5,
+    stillSeconds: 2,
+    elapsedSeconds: 10
+  });
+
+  assert.deepEqual(success, { success: true, trigger: "manual" });
+
+  const notStill = settleSimulation({
+    trigger: "auto_still",
+    coverage: 1,
+    angleDeg: 2,
+    stillSeconds: 1.9,
+    elapsedSeconds: 10
+  });
+
+  assert.deepEqual(notStill, { success: false, reason: "not_still", trigger: "auto_still" });
 });
+
+

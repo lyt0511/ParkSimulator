@@ -41,3 +41,20 @@ test("ui uses core runtime api for scenario-control-settlement loop", () => {
   assert.match(content, /shouldAutoSettleByStill/);
   assert.match(content, /settleRuntimeState/);
 });
+
+test("browser entry and local web scripts exist", () => {
+  const packageContent = fs.readFileSync("package.json", "utf8");
+  assert.match(packageContent, /"web:build"/);
+  assert.match(packageContent, /"web:serve"/);
+  assert.match(packageContent, /"web:run"/);
+
+  const browserContent = fs.readFileSync("src/ui/browser.ts", "utf8");
+  assert.match(browserContent, /setInterval/);
+  assert.match(browserContent, /pressThrottle/);
+  assert.match(browserContent, /releaseThrottle/);
+  assert.match(browserContent, /enterScenarioFromMenu/);
+
+  assert.equal(fs.existsSync("public/index.html"), true);
+  assert.equal(fs.existsSync("scripts/serve-static.mjs"), true);
+  assert.equal(fs.existsSync("scripts/web-run.mjs"), true);
+});

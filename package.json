@@ -7,7 +7,10 @@
     "lint": "tsc --noEmit --pretty false",
     "test": "npm run test:unit -- all",
     "test:unit": "node tests/contract/run-unit.js",
-    "build": "tsc --noEmit"
+    "build": "tsc --noEmit",
+    "web:build": "tsc -p tsconfig.web.json",
+    "web:serve": "node scripts/serve-static.mjs",
+    "web:run": "node scripts/web-run.mjs"
   },
   "devDependencies": {
     "typescript": "^5.9.0"

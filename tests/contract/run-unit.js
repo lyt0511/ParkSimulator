@@ -30,6 +30,15 @@ if (!files) {
   process.exit(1);
 }
 
+const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
+const buildResult = spawnSync(npmCmd, ["run", "web:build"], {
+  stdio: "inherit",
+  shell: process.platform === "win32"
+});
+if ((buildResult.status ?? 1) !== 0) {
+  process.exit(buildResult.status ?? 1);
+}
+
 const result = spawnSync(
   process.execPath,
   ["--test", "--experimental-test-isolation=none", ...files],

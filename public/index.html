@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Park Simulator</title>
+    <style>
+      body {
+        font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .panel {
+        max-width: 780px;
+        margin: 0 auto;
+        display: grid;
+        gap: 12px;
+      }
+
+      .row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      button,
+      select {
+        font-size: 16px;
+        padding: 8px 12px;
+      }
+
+      .controls {
+        display: grid;
+        gap: 10px;
+      }
+
+      .throttle {
+        display: inline-grid;
+        gap: 8px;
+        width: 90px;
+      }
+
+      pre {
+        background: #f4f4f4;
+        padding: 10px;
+        border-radius: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="panel">
+      <h1>Park Simulator</h1>
+      <section class="row">
+        <label for="scenario">场景</label>
+        <select id="scenario"></select>
+        <button id="start">进入场景</button>
+        <button id="manual-settle">手动结算</button>
+      </section>
+      <section class="controls">
+        <div class="row">
+          <button id="left">左</button>
+          <button id="right">右</button>
+        </div>
+        <div class="throttle">
+          <button id="up">上</button>
+          <button id="down">下</button>
+        </div>
+      </section>
+      <pre id="state">等待开始...</pre>
+    </main>
+    <script type="module" src="/src/ui/browser.js"></script>
+  </body>
+</html>
