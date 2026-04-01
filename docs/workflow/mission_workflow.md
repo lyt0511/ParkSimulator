@@ -39,7 +39,7 @@ Done when
 按这个计划开始实现。
 要求：
 0. 把当前任务卡写到docs/mission/prd-0.3-s<$mission_id>.md（要求中文）
-1. 先写/更新测试，再改实现
+1. 先写/更新测试（包括单元测试），再改实现
 2. 完成后运行 npm run lint && npm run test:unit -- <scope> && npm run build
 3. 最后输出改动文件、测试结果、剩余风险、建议 commit message
 

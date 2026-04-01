@@ -9,13 +9,15 @@ const scopeToFiles = {
   s04: ["tests/contract/s04-settlement.test.js"],
   s05: ["tests/contract/s05-failure-reasons.test.js"],
   s06: ["tests/contract/s06-delivery-hardening.test.js"],
+  s07: ["tests/contract/s07-runtime-loop.test.js"],
   all: [
     "tests/contract/contract-smoke.test.js",
     "tests/contract/s02-scenes.test.js",
     "tests/contract/s03-motion-semantics.test.js",
     "tests/contract/s04-settlement.test.js",
     "tests/contract/s05-failure-reasons.test.js",
-    "tests/contract/s06-delivery-hardening.test.js"
+    "tests/contract/s06-delivery-hardening.test.js",
+    "tests/contract/s07-runtime-loop.test.js"
   ]
 };
 

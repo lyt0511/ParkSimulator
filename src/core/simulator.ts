@@ -1,10 +1,10 @@
-import {
+﻿import {
   MOTION_RULES,
   SETTLEMENT_RULES,
   SUCCESS_RULES,
   type FailureReason
 } from "./rules.js";
-import type { ScenarioId } from "../scenes/index.js";
+import { SCENARIO_SCHEMAS, type ScenarioId } from "../scenes/index.js";
 
 export const SETTLEMENT_TRIGGERS = ["manual", "auto_still"] as const;
 
@@ -42,6 +42,7 @@ export const CONTROL_RANGE = {
 
 export const SAMPLE_RATE_HZ = 20;
 export const FRAME_DT_SECONDS = 1 / SAMPLE_RATE_HZ;
+export const STILL_SPEED_EPSILON = 0.001;
 
 export const GAME_PHASES = ["menu", "running", "settled"] as const;
 
@@ -74,6 +75,29 @@ export const INITIAL_VEHICLE_STATE: VehicleState = {
   headingDeg: 0,
   speed: 0
 };
+
+export type RuntimeState = {
+  phase: "running" | "settled";
+  tick: number;
+  selectedScenario: ScenarioId;
+  vehicle: VehicleState;
+  elapsedSeconds: number;
+  stillSeconds: number;
+  settlement: Settlement | null;
+};
+
+export type RuntimeStepFlags = {
+  collision?: boolean;
+  outOfBounds?: boolean;
+  crossLine?: boolean;
+};
+
+export type RuntimeSettlementProbe = {
+  coverage: number;
+  angleDeg: number;
+};
+
+export type RuntimeSettlementInput = RuntimeSettlementProbe & RuntimeStepFlags;
 
 export const clampControlValue = (value: number): number => {
   if (value < CONTROL_RANGE.min) {
@@ -129,6 +153,48 @@ export const runDeterministicSequence = (
   return inputs.reduce((currentState, input) => {
     return stepVehicleState(currentState, input, dtSeconds);
   }, initialState);
+};
+
+export const createRuntimeStateFromScenario = (scenarioId: ScenarioId): RuntimeState => {
+  const initialPose = SCENARIO_SCHEMAS[scenarioId].initialPose;
+
+  return {
+    phase: "running",
+    tick: 0,
+    selectedScenario: scenarioId,
+    vehicle: {
+      x: initialPose.x,
+      y: initialPose.y,
+      headingDeg: initialPose.headingDeg,
+      speed: initialPose.speed
+    },
+    elapsedSeconds: 0,
+    stillSeconds: 0,
+    settlement: null
+  };
+};
+
+export const stepRuntimeState = (
+  state: RuntimeState,
+  input: ControlInput,
+  dtSeconds: number = FRAME_DT_SECONDS
+): RuntimeState => {
+  if (state.phase === "settled") {
+    return state;
+  }
+
+  const nextVehicle = stepVehicleState(state.vehicle, input, dtSeconds);
+  const nextElapsedSeconds = state.elapsedSeconds + dtSeconds;
+  const nextStillSeconds =
+    Math.abs(nextVehicle.speed) <= STILL_SPEED_EPSILON ? state.stillSeconds + dtSeconds : 0;
+
+  return {
+    ...state,
+    tick: state.tick + 1,
+    vehicle: nextVehicle,
+    elapsedSeconds: nextElapsedSeconds,
+    stillSeconds: nextStillSeconds
+  };
 };
 
 export const evaluateSuccessCriteria = ({
@@ -201,5 +267,32 @@ export const settleSimulation = (context: SettlementContext): Settlement => {
     success: false,
     reason: "not_still",
     trigger: context.trigger
+  };
+};
+
+export const settleRuntimeState = (
+  state: RuntimeState,
+  trigger: SettlementTrigger,
+  probe: RuntimeSettlementInput
+): RuntimeState => {
+  if (state.phase === "settled") {
+    return state;
+  }
+
+  const settlement = settleSimulation({
+    trigger,
+    elapsedSeconds: state.elapsedSeconds,
+    stillSeconds: state.stillSeconds,
+    coverage: probe.coverage,
+    angleDeg: probe.angleDeg,
+    collision: probe.collision,
+    outOfBounds: probe.outOfBounds,
+    crossLine: probe.crossLine
+  });
+
+  return {
+    ...state,
+    phase: "settled",
+    settlement
   };
 };
